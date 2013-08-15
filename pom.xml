@@ -12,11 +12,11 @@
 	</parent>
 
 	<groupId>sc.fiji</groupId>
-	<artifactId>My_Plugin</artifactId>
+	<artifactId>Read_Spim</artifactId>
 	<version>1.0.0</version>
 
-	<name>plugins/My_Plugin.jar</name>
-	<description>A Maven project implementing an ImageJ 1.x plugin</description>
+	<name>plugins/Read_Spim.jar</name>
+	<description>ImageJ plugin for reading Spim data files</description>
 
 	<dependencies>
 		<dependency>

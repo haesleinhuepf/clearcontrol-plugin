@@ -65,8 +65,21 @@ public class Read_Spim implements PlugIn {
 
 	
 	public ImagePlus loadSpimFile(String fName, int[] stackDim) {
-		ImagePlus img;
-		return null;
+		// load the data file
+
+		FileInfo fi = new FileInfo();
+
+		fi.width = stackDim[0];
+		fi.height = stackDim[1];
+		fi.fileFormat = fi.RAW;
+		fi.fileName = fName;
+		fi.intelByteOrder = true;
+		
+		fi.fileType = FileInfo.GRAY16_UNSIGNED;
+		fi.nImages = stackDim[2] * stackDim[3];
+
+		ImagePlus img = new FileOpener(fi).open(false);
+		return img;
 	}
 	
 	@Override
@@ -90,30 +103,15 @@ public class Read_Spim implements PlugIn {
 			return;
 		}
 
-		// load the data file
-
-		FileInfo fi = new FileInfo();
-
-		fi.width = stackDim[0];
-		fi.height = stackDim[1];
-		fi.fileFormat = fi.RAW;
-		fi.fileName = DATA_NAME;
-		fi.intelByteOrder = true;
-		fi.directory = dirName;
-		fi.fileType = FileInfo.GRAY16_UNSIGNED;
-		fi.nImages = stackDim[2] * stackDim[3];
-
 		try {
 			
 			
-			ImagePlus img = new FileOpener(fi).open(false);
-
+			ImagePlus img = loadSpimFile(dirName+DATA_NAME, stackDim);
+		
 			// create a hyperstack from the image
 			img.setDimensions(N_CHANNEL, stackDim[2], stackDim[3]);
-
-			ImagePlus img2 = img;
-			img2.setOpenAsHyperStack(true);
-			img2.show();
+			img.setOpenAsHyperStack(true);
+			img.show();
 
 		
 		}
