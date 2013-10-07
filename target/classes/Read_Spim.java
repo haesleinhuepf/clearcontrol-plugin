@@ -6,14 +6,10 @@
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
-import ij.gui.GenericDialog;
 import ij.plugin.PlugIn;
-import ij.process.ImageProcessor;
 import ij.io.*;
 
 import java.io.*;
-import java.nio.*;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -21,10 +17,24 @@ public class Read_Spim implements PlugIn {
 	
 	public final static String INDEX_NAME = "index.txt";
 	public final static String DATA_NAME = "data.bin";
+	public final static String DATA_DIR_NAME = "data";
 	public final static int N_CHANNEL = 1;
 	public final static int COLOR_DEPTH = 16;
 
-	public String getDir() {
+	
+	public String joinPath(final String path1, final String path2){
+	
+		File foo = new File(path1,path2);
+		return foo.getAbsolutePath();
+	}
+	
+	public String getParentDir(final String path){
+	
+		File foo = new File(path);
+		return foo.getAbsoluteFile().getParentFile().getName();
+	}
+	
+	public String getRootDir() {
 		// Open a directory and get the path
 		DirectoryChooser dirDialog = new DirectoryChooser("Select folder");
 		String selectedPath = new String("");
@@ -32,17 +42,18 @@ public class Read_Spim implements PlugIn {
 		return selectedPath;
 	}
 
-	public int[] parseIndexFile(final String dirName, final String fileName)
+	public int[] parseIndexFile(final String fileName)
 			throws FileNotFoundException {
-
-		Scanner scanner = new Scanner(new File(dirName, fileName));
+		// the index file should be in the data directory and includes the dimensions 
+		// of the 4D stacks
+		// returns the dimensions as int[]{width,height,slices,frames}
+		
+		Scanner scanner = new Scanner(new File(fileName));
 
 		String[] tokens = new String[4];
 
 		int[] newShape = new int[] { 0, 0, 0, 0 };
 
-		// lines read from metadata file
-		// returns the files shape as (width,height,slices,frames)
 
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();
@@ -62,7 +73,6 @@ public class Read_Spim implements PlugIn {
 		scanner.close();
 		return newShape;
 	}
-
 	
 	public ImagePlus loadSpimFile(String fName, int[] stackDim) {
 		// load the data file
@@ -71,7 +81,7 @@ public class Read_Spim implements PlugIn {
 
 		fi.width = stackDim[0];
 		fi.height = stackDim[1];
-		fi.fileFormat = fi.RAW;
+		fi.fileFormat = FileInfo.RAW;
 		fi.fileName = fName;
 		fi.intelByteOrder = true;
 		
@@ -87,38 +97,45 @@ public class Read_Spim implements PlugIn {
 	@Override
 	public void run(String arg) {
 		
-		// get the directiory
+		// get the root directiory
 		
-		String dirName = getDir();
-		//String dirName = "/Users/mweigert/Desktop/SpimPlugin/data/";
-
-		if (dirName == null)
+		String dirRootName = getRootDir();
+//		String dirRootName = "/Users/mweigert/Desktop/Phd/Denoise/SpimData/SmallSample/";
+		
+		if (dirRootName == null)
 			return;
 
-		// get the dimensions of the stack
+		// set up the paths...
+		final String dataDirName = joinPath(dirRootName,DATA_DIR_NAME);
+		final String indexFileName = joinPath(dataDirName,INDEX_NAME);
+		final String dataFileName = joinPath(dataDirName,DATA_NAME);  
+		final String titleName = getParentDir(dataDirName);
+	
 		int[] stackDim = new int[] { 0, 0, 0, 0 };
 
+		// read the index.txt file 
 		try {
-			stackDim = parseIndexFile(dirName, INDEX_NAME);
+			stackDim = parseIndexFile(indexFileName);
 		} catch (FileNotFoundException e) {
-			System.err.println("couldn't find index file!");
+			IJ.log(String.format("could not open %s !",indexFileName));
 			return;
 		}
 
 		try {
+						
+			ImagePlus img = loadSpimFile(dataFileName, stackDim);
 			
-			
-			ImagePlus img = loadSpimFile(dirName+DATA_NAME, stackDim);
-		
-			// create a hyperstack from the image
+			// create a hyperstack from the image and set the properties
 			img.setDimensions(N_CHANNEL, stackDim[2], stackDim[3]);
 			img.setOpenAsHyperStack(true);
+			img.setTitle(titleName);
 			img.show();
 
 		
 		}
 		catch(Exception e){
-			IJ.log("couldnt open "+DATA_NAME);
+			IJ.log(String.format("could not open %s !",dataFileName));
+			
 			return;
 		}
 		
@@ -127,8 +144,7 @@ public class Read_Spim implements PlugIn {
 
 	// debugging method
 	public static void main(String[] args) {
-		// set the plugins.dir property to make the plugin appear in the Plugins
-		// menu
+		// set the plugins.dir property to make the plugin appear in the menu
 		Class<?> clazz = Read_Spim.class;
 		String url = clazz.getResource(
 				"/" + clazz.getName().replace('.', '/') + ".class").toString();
@@ -142,6 +158,6 @@ public class Read_Spim implements PlugIn {
 		// run the plugin
 		IJ.runPlugIn(clazz.getName(), "");
 
-		// app.quit();
+		app.quit();
 	}
 }
