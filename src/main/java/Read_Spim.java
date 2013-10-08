@@ -1,5 +1,13 @@
 /*
  * Plugin to load SPIM data directly as hyperstack via an index file
+ * it expects the following directory structure:
+ * 
+ * <root>
+ *     <data>
+ *     		data.bin
+ *     		index.txt 
+ *     
+ * where <root> has to be chosen by the user 
  * MW 2013
  */
 
