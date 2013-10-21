@@ -21,47 +21,59 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import spimdirchooser.SpimDirChooser;
+
 public class Read_Spim implements PlugIn {
-	
+
 	public final static String INDEX_NAME = "index.txt";
 	public final static String DATA_NAME = "data.bin";
 	public final static String DATA_DIR_NAME = "data";
 	public final static int N_CHANNEL = 1;
 	public final static int COLOR_DEPTH = 16;
 
-	
-	public String joinPath(final String path1, final String path2){
-	
-		File foo = new File(path1,path2);
+	private static String dirRootName = null;
+	private int openMode;
+	private int timeT1, timeT2;
+
+	static public String joinPath(final String path1, final String path2) {
+
+		File foo = new File(path1, path2);
 		return foo.getAbsolutePath();
 	}
-	
-	public String getParentDir(final String path){
-	
-		File foo = new File(path);
-		return foo.getAbsoluteFile().getParentFile().getName();
-	}
-	
-	public String getRootDir() {
-		// Open a directory and get the path
-		DirectoryChooser dirDialog = new DirectoryChooser("Select folder");
-		String selectedPath = new String("");
-		selectedPath = dirDialog.getDirectory();
-		return selectedPath;
+
+	static public String getParentDir(final String path) {
+
+		if (path==null)
+			return null;
+		else{
+			File foo = new File(path);
+			return foo.getAbsoluteFile().getParentFile().getAbsolutePath();
+		}
 	}
 
-	public int[] parseIndexFile(final String fileName)
+	public void getRootDir() {
+		// Open a directory and get the path and time intervals
+
+		
+		SpimDirChooser chooser = new SpimDirChooser("choose spim folder",getParentDir(dirRootName));
+		openMode = chooser.showRun();
+		timeT1 = chooser.getT1();
+		timeT2 = chooser.getT2();
+		dirRootName = chooser.getSelectedDir();
+	}
+
+	static public int[] parseIndexFile(final String fileName)
 			throws FileNotFoundException {
-		// the index file should be in the data directory and includes the dimensions 
+		// the index file should be in the data directory and includes the
+		// dimensions
 		// of the 4D stacks
 		// returns the dimensions as int[]{width,height,slices,frames}
-		
+
 		Scanner scanner = new Scanner(new File(fileName));
 
 		String[] tokens = new String[4];
 
 		int[] newShape = new int[] { 0, 0, 0, 0 };
-
 
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();
@@ -81,8 +93,9 @@ public class Read_Spim implements PlugIn {
 		scanner.close();
 		return newShape;
 	}
-	
-	public ImagePlus loadSpimFile(String fName, int[] stackDim) {
+
+	static public ImagePlus loadSpimFile(String fName, int[] stackDim,
+			final long skip) {
 		// load the data file
 
 		FileInfo fi = new FileInfo();
@@ -92,62 +105,70 @@ public class Read_Spim implements PlugIn {
 		fi.fileFormat = FileInfo.RAW;
 		fi.fileName = fName;
 		fi.intelByteOrder = true;
-		
+		fi.longOffset = skip * fi.width * fi.height * 2;
 		fi.fileType = FileInfo.GRAY16_UNSIGNED;
 		fi.nImages = stackDim[2] * stackDim[3];
 
 		ImagePlus img = new FileOpener(fi).open(false);
-		
-		System.out.printf("loading file of dimension %s\n",Arrays.toString(stackDim));
+
 		return img;
 	}
-	
+
 	@Override
 	public void run(String arg) {
-		
-		// get the root directiory
-		
-		String dirRootName = getRootDir();
-//		String dirRootName = "/Users/mweigert/Desktop/Phd/Denoise/SpimData/SmallSample/";
-		
-		if (dirRootName == null)
-			return;
 
-		// set up the paths...
-		final String dataDirName = joinPath(dirRootName,DATA_DIR_NAME);
-		final String indexFileName = joinPath(dataDirName,INDEX_NAME);
-		final String dataFileName = joinPath(dataDirName,DATA_NAME);  
-		final String titleName = getParentDir(dataDirName);
 	
-		int[] stackDim = new int[] { 0, 0, 0, 0 };
+		// fetch the root directory and the time intervall to open
+		getRootDir();
 
-		// read the index.txt file 
-		try {
-			stackDim = parseIndexFile(indexFileName);
-		} catch (FileNotFoundException e) {
-			IJ.log(String.format("could not open %s !",indexFileName));
+		if (openMode == SpimDirChooser.SELECT_CANCEL)
 			return;
+
+		else {
+			// set up the paths...
+			final String dataDirName = joinPath(dirRootName, DATA_DIR_NAME);
+			final String indexFileName = joinPath(dataDirName, INDEX_NAME);
+			final String dataFileName = joinPath(dataDirName, DATA_NAME);
+			final String titleName = getParentDir(dataDirName);
+
+			int[] stackDim = new int[4];
+
+			// read the index.txt file
+			try {
+				stackDim = parseIndexFile(indexFileName);
+			} catch (FileNotFoundException e) {
+				IJ.log(String.format("could not open %s !", indexFileName));
+				return;
+			}
+
+			long skip = 0;
+			if (openMode == SpimDirChooser.SELECT_OPEN_INTERVAL) {
+				skip = timeT1-1;
+				int dimT = timeT2 - timeT1 + 1;
+				stackDim[3] = Math.min(Math.max(1, dimT), stackDim[3]);
+			}
+
+			try {
+
+				System.out.printf("loading file of dimension %s\n",
+						Arrays.toString(stackDim));
+
+				ImagePlus img = loadSpimFile(dataFileName, stackDim, skip);
+
+				// create a hyperstack from the image and set the properties
+				img.setDimensions(N_CHANNEL, stackDim[2], stackDim[3]);
+				img.setOpenAsHyperStack(true);
+				img.setTitle(titleName);
+				img.show();
+
+			} catch (Exception e) {
+				IJ.log(String.format("could not open %s !", dataFileName));
+
+				return;
+			}
+
 		}
 
-		try {
-						
-			ImagePlus img = loadSpimFile(dataFileName, stackDim);
-			
-			// create a hyperstack from the image and set the properties
-			img.setDimensions(N_CHANNEL, stackDim[2], stackDim[3]);
-			img.setOpenAsHyperStack(true);
-			img.setTitle(titleName);
-			img.show();
-
-		
-		}
-		catch(Exception e){
-			IJ.log(String.format("could not open %s !",dataFileName));
-			
-			return;
-		}
-		
-				
 	}
 
 	// debugging method
@@ -166,6 +187,6 @@ public class Read_Spim implements PlugIn {
 		// run the plugin
 		IJ.runPlugIn(clazz.getName(), "");
 
-		app.quit();
+		// app.quit();
 	}
 }
