@@ -36,10 +36,10 @@ public class Read_Spim implements PlugIn {
 
 	public void getRootDir() {
 		// Open a directory and get the path and time intervals
-//		SpimDirChooser chooser = new SpimDirChooser("choose spim folder",
-//				SpimInfo.getParentDir(dirRootName));
+		
+		System.out.println(SpimInfo.getParentDir(dirRootName));
 		SpimDirChooser chooser = new SpimDirChooser("choose spim folder",
-				null);
+				SpimInfo.getParentDir(dirRootName));
 
 		openMode = chooser.showRun();
 		timeT1 = chooser.getT1();
@@ -109,7 +109,7 @@ public class Read_Spim implements PlugIn {
 				img.setDimensions(N_CHANNEL, stackDim[2], stackDim[3]);
 				
 				// calibration 
-				Calibration cal = new Calibration(img);
+				Calibration cal = img.getCalibration();
 				cal.pixelWidth = spimInfo.pixelSize[0];
 				cal.pixelHeight = spimInfo.pixelSize[1];
 				cal.pixelDepth = spimInfo.pixelSize[2];
