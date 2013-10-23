@@ -89,7 +89,7 @@ public class SpimDirChooser extends JDialog {
 		fieldT1.setValue(1);
 		fieldT1.setColumns(5);
 		fieldT2 = new JFormattedTextField(formatter);
-		fieldT2.setValue(11);
+		fieldT2.setValue(10);
 		fieldT2.setColumns(5);
 
 		JLabel labelOffset = new JLabel("t1");

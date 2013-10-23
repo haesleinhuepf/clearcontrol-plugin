@@ -1,4 +1,9 @@
 import static org.junit.Assert.*;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
@@ -47,7 +52,6 @@ public class Tests {
 	
 		app.quit();
 	}
-
 
 
 	@Test
