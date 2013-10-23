@@ -114,7 +114,7 @@ public class Read_Spim implements PlugIn {
 				cal.pixelHeight = spimInfo.pixelSize[1];
 				cal.pixelDepth = spimInfo.pixelSize[2];
 				cal.setUnit("um");
-				img.setCalibration(cal);
+
 				
 				
 				img.setOpenAsHyperStack(true);

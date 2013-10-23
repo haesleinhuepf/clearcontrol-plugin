@@ -61,8 +61,43 @@ public class SpimInfo {
 			throws FileNotFoundException {
 		// the metadata file should be in the data directory and includes the
 		// pixel Sizes etc...
+		final float[] defaultPixelSize = new float[] { .162f, .162f, .5f };
 
-		return new float[]{.162f,.162f,.162f};
+		if (!(new File(fileName)).exists()) {
+			System.out.println(fileName
+					+ " doesnt exists. Use default resolutions for pixelSize.");
+			return defaultPixelSize;
+		}
+
+		Scanner scanner = new Scanner(new File(fileName));
+
+		String[] tokens = new String[4];
+
+		float startZ = -1.f, stopZ = -1.f;
+		int numberOfPlanes = -1;
+		
+		try {
+			while (scanner.hasNextLine()) {
+				String line = scanner.nextLine();
+				if (line.contains("timelapse.StartZ")) {
+					startZ = Float.parseFloat(line.split("\t")[2]);
+					System.out.println(startZ);
+				}
+				if (line.contains("timelapse.StopZ")) {
+					stopZ = Float.parseFloat(line.split("\t")[2]);
+					System.out.println(stopZ);
+				}
+				if (line.contains("timelapse.NumberOfPlanes")) {
+					numberOfPlanes = (int)Float.parseFloat(line.split("\t")[2]);
+					System.out.println(numberOfPlanes);
+				}
+			}
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			return defaultPixelSize;
+			
+		}
+		return new float[] { .162f, .162f, (stopZ-startZ)/(numberOfPlanes-1) };
 	}
 
 	int[] stackDim;
@@ -89,8 +124,7 @@ public class SpimInfo {
 		metaFileName = SpimInfo.joinPath(dirRootName, META_NAME);
 		indexFileName = SpimInfo.joinPath(dataDirName, INDEX_NAME);
 		dataFileName = SpimInfo.joinPath(dataDirName, DATA_NAME);
-	
-		
+
 		// check whether they all exists:
 
 		if (!(new File(dataDirName)).exists())
@@ -107,11 +141,11 @@ public class SpimInfo {
 			stackDim = SpimInfo.parseIndexFile(indexFileName);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			throw new Exception("couldnt parse index File: "+ indexFileName);
+			throw new Exception("couldnt parse index File: " + indexFileName);
 		}
 
 		pixelSize = parseMetadataFile(metaFileName);
-		
+
 	}
 
 	@Test
@@ -137,20 +171,28 @@ public class SpimInfo {
 		int[] dim = new int[4];
 		dim = parseIndexFile("index.txt");
 
-		System.out.println(Arrays.toString(dim));
+		System.out.println("test_index: " + Arrays.toString(dim));
 	}
 
 	@Test
-	public void testLoadDir(){
+	public void test_Meta() throws Exception {
 
-		
+		float[] dim = new float[3];
+		dim = parseMetadataFile("metadata.txt");
+
+		System.out.println("test_Meta: " + Arrays.toString(dim));
+	}
+
+	@Test
+	public void testLoadDir() {
+
 		SpimInfo info = new SpimInfo();
 		try {
 			info.loadDir("/Users/mweigert/Desktop/Phd/Denoise/opencl/spimMeans/histone");
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
-		
+
 		System.out.println(Arrays.toString(info.stackDim));
 	}
 }
