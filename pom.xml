@@ -8,15 +8,16 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>1.51</version>
+		<version>1.126</version>
+		<relativePath />
 	</parent>
 
 	<groupId>sc.fiji</groupId>
-	<artifactId>Read_Spim</artifactId>
+	<artifactId>Process_Pixels</artifactId>
 	<version>1.0.0</version>
 
-	<name>plugins/Read_Spim.jar</name>
-	<description>ImageJ plugin for reading Spim data files</description>
+	<name>plugins/Process_Pixels.jar</name>
+	<description>A Maven project implementing an ImageJ 1.x plugin</description>
 
 	<dependencies>
 		<dependency>
@@ -55,7 +56,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>My_Plugin</mainClass>
+					<mainClass>Process_Pixels</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -77,15 +78,11 @@
 		</developer>
 	</developers>
 
-	<!-- NB: for project parent -->
 	<repositories>
+		<!-- NB: for project parent -->
 		<repository>
-			<id>imagej.releases</id>
-			<url>http://maven.imagej.net/content/repositories/releases</url>
-		</repository>
-		<repository>
-			<id>imagej.snapshots</id>
-			<url>http://maven.imagej.net/content/repositories/snapshots</url>
+			<id>imagej.public</id>
+			<url>http://maven.imagej.net/content/groups/public</url>
 		</repository>
 	</repositories>
 
@@ -97,3 +94,4 @@
 	</scm>
 
 </project>
+

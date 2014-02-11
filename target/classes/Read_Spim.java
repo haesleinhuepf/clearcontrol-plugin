@@ -14,7 +14,9 @@
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import ij.VirtualStack;
 import ij.measure.Calibration;
+import ij.plugin.AVI_Reader;
 import ij.plugin.PlugIn;
 import ij.io.*;
 
@@ -28,16 +30,18 @@ public class Read_Spim implements PlugIn {
 
 	public final static int N_CHANNEL = 1;
 	public final static int COLOR_DEPTH = 16;
-	private static String dirRootName = null;
+	private static String dirRootName = ".";
 
 	private static SpimInfo spimInfo;
 	private int openMode;
 	private int timeT1, timeT2;
+	private VirtualStack vStack;
 
 	public void getRootDir() {
 		// Open a directory and get the path and time intervals
 		
-		System.out.println(SpimInfo.getParentDir(dirRootName));
+		System.out.println(SpimInfo.getWorkingDir("."));
+		
 		SpimDirChooser chooser = new SpimDirChooser("choose spim folder",
 				SpimInfo.getParentDir(dirRootName));
 
@@ -51,6 +55,7 @@ public class Read_Spim implements PlugIn {
 			final long skip) {
 		// load the data file
 
+
 		FileInfo fi = new FileInfo();
 
 		fi.width = stackDim[0];
@@ -58,10 +63,15 @@ public class Read_Spim implements PlugIn {
 		fi.fileFormat = FileInfo.RAW;
 		fi.fileName = fName;
 		fi.intelByteOrder = true;
-		fi.longOffset = skip * fi.width * fi.height * 2;
+		
 		fi.fileType = FileInfo.GRAY16_UNSIGNED;
 		fi.nImages = stackDim[2] * stackDim[3];
-
+		fi.longOffset = skip * stackDim[0] * stackDim[1] * stackDim[2] * 2;
+		
+		
+		
+	//	fi.virtualStack = vStack;
+		
 		ImagePlus img = new FileOpener(fi).open(false);
 
 		return img;
@@ -80,6 +90,7 @@ public class Read_Spim implements PlugIn {
 			// set up the object holding the info about the spim data folder,
 			// dimensions etc...
 
+			
 			spimInfo = new SpimInfo();
 
 			try {
@@ -103,6 +114,8 @@ public class Read_Spim implements PlugIn {
 
 			try {
 
+			//	vStack = new VirtualStack(stackDim[0],stackDim[1],null,spimInfo.dataFileName);
+	
 				ImagePlus img = loadSpimFile(spimInfo.dataFileName, stackDim, skip);
 
 				// create a hyperstack from the image and set the properties
@@ -130,6 +143,59 @@ public class Read_Spim implements PlugIn {
 
 	}
 
+	
+	
+	public void run3(String arg) {
+
+		// set up the object holding the info about the spim data folder,
+		// dimensions etc...
+
+		timeT1 = 8;
+		timeT2 = 10;
+		
+		spimInfo = new SpimInfo();
+
+		try {
+			spimInfo.loadDir("TestData");
+		} catch (Exception e) {
+			System.err.println("wooooo");
+		IJ.log(e.getMessage());
+			return;
+		}
+
+		int[] stackDim = spimInfo.stackDim.clone();
+		long skip = 0;
+		skip = timeT1 - 1;
+		int dimT = timeT2 - timeT1 + 1;
+		stackDim[3] = Math.min(Math.max(1, dimT), stackDim[3]);
+		
+		System.out.printf("loading file of dimension %s\n",
+				Arrays.toString(stackDim));
+		try {
+
+			ImagePlus img = loadSpimFile(spimInfo.dataFileName, stackDim, skip);
+
+			// create a hyperstack from the image and set the properties
+			img.setDimensions(N_CHANNEL, stackDim[2], stackDim[3]);
+				
+			// calibration 
+			Calibration cal = img.getCalibration();
+			cal.pixelWidth = spimInfo.pixelSize[0];
+			cal.pixelHeight = spimInfo.pixelSize[1];
+			cal.pixelDepth = spimInfo.pixelSize[2];
+			cal.setUnit("um");
+				
+			img.setOpenAsHyperStack(true);
+			img.setTitle(dirRootName);
+			img.show();
+
+		} catch (Exception e) {
+			IJ.log(String.format("could not open %s !", spimInfo.dataFileName));
+			return;
+		}
+
+	}
+	
 	// debugging method
 	public static void main(String[] args) {
 		// set the plugins.dir property to make the plugin appear in the menu

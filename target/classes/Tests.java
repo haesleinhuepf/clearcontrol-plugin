@@ -20,7 +20,7 @@ public class Tests {
 	@Test
 	public void testFile() {
 		
-		String fName = "/Users/mweigert/Desktop/Phd/Denoise/SpimData/SmallSample/data/data.bin";
+		String fName = "TestData/data/data.bin";
 			
 		int[] stackDim = new int[]{320,320,51,3};
 		ImagePlus img = Read_Spim.loadSpimFile(fName, stackDim,1);
@@ -60,8 +60,6 @@ public class Tests {
 		SpimDirChooser chooser = new SpimDirChooser("choose spim folder");
 		
 		int mode = chooser.showRun();
-		
-		
 		System.out.println(mode);
 	
 //		int[] stackDim = new int[]{320,320,51,3};

@@ -25,6 +25,16 @@ public class SpimInfo {
 		}
 	}
 
+	static public String getWorkingDir(final String path) {
+
+		if (path == null)
+			return null;
+		else {
+			File foo = new File(path);
+			return foo.getAbsoluteFile().getAbsolutePath();
+		}
+	}
+
 	static public int[] parseIndexFile(final String fileName)
 			throws FileNotFoundException {
 		// the index file should be in the data directory and includes the

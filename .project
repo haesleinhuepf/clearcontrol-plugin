@@ -3,6 +3,15 @@
 	<name>Read_Spim</name>
 	<comment></comment>
 	<projects>
+		<project>Fiji_Archipelago</project>
+		<project>Fiji_Developer</project>
+		<project>Fiji_Package_Maker</project>
+		<project>Fiji_Plugins</project>
+		<project>Fiji_Updater</project>
+		<project>fiji-compat</project>
+		<project>fiji-lib</project>
+		<project>fiji-scripting</project>
+		<project>pom-fiji</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
