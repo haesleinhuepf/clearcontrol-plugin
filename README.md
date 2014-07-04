@@ -1,7 +1,7 @@
 A simple Fiji plugin to open the spim data aquired from the Bscope at the Myers Lab
 
 
-Bscope data is currently saved in the following structure
+data is currently saved in the following structure
 
 
 * <DATASETNAME>
