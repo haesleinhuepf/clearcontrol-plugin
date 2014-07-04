@@ -4,11 +4,11 @@ A simple Fiji plugin to open the spim data aquired from the Bscope at the Myers 
 Bscope data is currently saved in the following structure
 
 
->* <DATASETNAME>
->  * metadata.txt
->  * <data>
->  	 * data.bin
->	 * index.txt
+* <DATASETNAME>
+    * metadata.txt
+    * <data>
+        * data.bin
+        * index.txt
 
 
 ## Installation
