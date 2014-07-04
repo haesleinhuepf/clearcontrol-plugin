@@ -1,3 +1,23 @@
+/*
+ * Class to load the metadata of a spim data directory 
+ * it expects the following directory structure:
+ * 
+ * <root>
+ * 	   metadata.txt
+ *     <data>
+ *     		data.bin
+ *     		index.txt 
+ *     
+ * where <root> has to be chosen by the user 
+ * 
+ * 
+ * 
+ * 2013 MW
+ * mweigert@mpi-cbg.de 
+ */	
+
+
+
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -9,6 +29,8 @@ import org.junit.Test;
 
 public class SpimInfo {
 
+	// some static functions for joining paths, getting working directory etc
+	
 	static public String joinPath(final String path1, final String path2) {
 
 		File foo = new File(path1, path2);
@@ -35,12 +57,21 @@ public class SpimInfo {
 		}
 	}
 
+	// the functions to parse the metadata/index files 
+	
+	// the index file lists the timepoints and image dimensions
+	//------index.txt
+	//0	259422997515086	1, 40, 30, 20	0
+	//1	259422997515086	1, 40, 30, 20	0
+	//....
+	//100	259422997515086	1, 40, 30, 20	0
+	//-----
+	
 	static public int[] parseIndexFile(final String fileName)
 			throws FileNotFoundException {
 		// the index file should be in the data directory and includes the
-		// dimensions
-		// of the 4D stacks
-		// returns the dimensions as int[]{width,height,slices,frames}
+		// dimensions of the 4D stacks
+		// returns the dimensions as int[]{width,height,depth,timepoints}
 
 		Scanner scanner = new Scanner(new File(fileName));
 
@@ -68,10 +99,23 @@ public class SpimInfo {
 		return newShape;
 	}
 
+	// the metadata file lists e.g. the dimension of the z planes
+	
+	//------metadata.txt
+	//...	
+	//timelapse.NumberOfPlanes	=	100.000	4636737291354636288
+	//timelapse.NumberOfTimePoints	=	10.0000	4632233691727265792
+	//timelapse.StartZ	=	25.0000	4627730092099895296
+	//timelapse.StopZ	=	75.0000	4634978072750194688
+	//....
+	//-------------------
+	
 	static public float[] parseMetadataFile(final String fileName)
 			throws FileNotFoundException {
-		// the metadata file should be in the data directory and includes the
-		// pixel Sizes etc...
+		// the metadata file should be in the data directory 
+		// returns float[]{px,py,pz}
+		// where px,py,pz are the pixelsizes (in microns), px and py are currentlty fixed
+
 		final float[] defaultPixelSize = new float[] { .162f, .162f, .5f };
 
 		if (!(new File(fileName)).exists()) {
@@ -111,13 +155,15 @@ public class SpimInfo {
 		return new float[] { .162f, .162f, (stopZ-startZ)/(numberOfPlanes-1) };
 	}
 
-	int[] stackDim;
-	float[] pixelSize;
 	public final static String INDEX_NAME = "index.txt";
 	public final static String DATA_NAME = "data.bin";
 	public final static String DATA_DIR_NAME = "data";
 	public final static String META_NAME = "metadata.txt";
 
+	// the non static members
+	int[] stackDim;
+	float[] pixelSize;
+	
 	public String dataDirName;
 	public String indexFileName;
 	public String dataFileName;
@@ -129,6 +175,9 @@ public class SpimInfo {
 		pixelSize = new float[3];
 	}
 
+	// the main load function 
+	// afterwards, the member pixelSize and stackDim are set
+	
 	public void loadDir(final String dirRootName) throws Exception {
 
 		dataDirName = SpimInfo.joinPath(dirRootName, DATA_DIR_NAME);
@@ -167,20 +216,12 @@ public class SpimInfo {
 		assertEquals(joinPath("You", "are.beautiful"), "You/are.beautiful");
 	}
 
-	@Test
-	public void test_getParentDir() {
-		assertEquals(getParentDir("."),
-				"/Users/mweigert/workspace_IJ/Read_Spim");
-		assertEquals(getParentDir("src/main"),
-				"/Users/mweigert/workspace_IJ/Read_Spim/src");
-
-	}
 
 	@Test
 	public void test_Index() throws Exception {
 
 		int[] dim = new int[4];
-		dim = parseIndexFile("index.txt");
+		dim = parseIndexFile("TestData/data/index.txt");
 
 		System.out.println("test_index: " + Arrays.toString(dim));
 	}
@@ -189,7 +230,7 @@ public class SpimInfo {
 	public void test_Meta() throws Exception {
 
 		float[] dim = new float[3];
-		dim = parseMetadataFile("metadata.txt");
+		dim = parseMetadataFile("TestData/metadata.txt");
 
 		System.out.println("test_Meta: " + Arrays.toString(dim));
 	}
@@ -199,7 +240,7 @@ public class SpimInfo {
 
 		SpimInfo info = new SpimInfo();
 		try {
-			info.loadDir("/Users/mweigert/Desktop/Phd/Denoise/opencl/spimMeans/histone");
+			info.loadDir("TestData");
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
