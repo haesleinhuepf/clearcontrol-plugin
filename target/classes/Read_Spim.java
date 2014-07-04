@@ -1,14 +1,17 @@
 /*
- * Plugin to load SPIM data directly as hyperstack via an index file
+ * Plugin to load SPIM data directly as hyperstack 
  * it expects the following directory structure:
  * 
  * <root>
+ * 	   metadata.txt
  *     <data>
  *     		data.bin
  *     		index.txt 
  *     
  * where <root> has to be chosen by the user 
- * MW 2013
+ * 
+ * 2013 MW
+ * mweigert@mpi-cbg.de 
  */
 
 import ij.IJ;
@@ -67,10 +70,6 @@ public class Read_Spim implements PlugIn {
 		fi.fileType = FileInfo.GRAY16_UNSIGNED;
 		fi.nImages = stackDim[2] * stackDim[3];
 		fi.longOffset = skip * stackDim[0] * stackDim[1] * stackDim[2] * 2;
-		
-		
-		
-	//	fi.virtualStack = vStack;
 		
 		ImagePlus img = new FileOpener(fi).open(false);
 

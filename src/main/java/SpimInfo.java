@@ -58,11 +58,12 @@ public class SpimInfo {
 				newShape[2] = Integer.valueOf(tokens[3].trim().split("\\D")[0]);
 				newShape[3] += 1;
 			} catch (Exception e) {
+				System.out.println(line);
 				// just ignore all line we couldnt parse...
 			}
 
 		}
-
+		System.out.println("stackSize:"+newShape);
 		scanner.close();
 		return newShape;
 	}
@@ -99,7 +100,7 @@ public class SpimInfo {
 				}
 				if (line.contains("timelapse.NumberOfPlanes")) {
 					numberOfPlanes = (int)Float.parseFloat(line.split("\t")[2]);
-					System.out.println(numberOfPlanes);
+					System.out.println("NumberOfPlanes:"+numberOfPlanes);
 				}
 			}
 		} catch (NumberFormatException e) {
