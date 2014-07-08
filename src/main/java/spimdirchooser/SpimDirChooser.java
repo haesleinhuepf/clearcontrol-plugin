@@ -24,6 +24,7 @@ import javax.swing.text.NumberFormatter;
 public class SpimDirChooser extends JDialog {
 
 	private JFileChooser chooser;
+	private JCheckBox CB_virtual;
 	private JCheckBox checkBox;
 	private JFormattedTextField fieldT1, fieldT2;
 	ArrayList<JComponent> editList;
@@ -35,6 +36,8 @@ public class SpimDirChooser extends JDialog {
 	public static final int SELECT_OPEN_SIMPLE = 1;
 	public static final int SELECT_OPEN_INTERVAL = 2;
 
+	private boolean CB_virtual_state;
+	
 	public SpimDirChooser(String title) {
 		initUI(title,null);
 	}
@@ -65,9 +68,9 @@ public class SpimDirChooser extends JDialog {
 				}
 			}
 		});
-
+		
+		
 		checkBox = new JCheckBox("import time interval:");
-
 		checkBox.addItemListener(new ItemListener() {
 
 			@Override
@@ -103,7 +106,7 @@ public class SpimDirChooser extends JDialog {
 		editList.add(fieldT2);
 
 		JPanel ctrlPanel = new JPanel(new FlowLayout());
-
+		
 		ctrlPanel.add(checkBox);
 
 		for (JComponent comp : editList) {
@@ -111,9 +114,13 @@ public class SpimDirChooser extends JDialog {
 			comp.setEnabled(false);
 		}
 
+		CB_virtual = new JCheckBox("virtual stack");
+		ctrlPanel.add(CB_virtual);
+		
 		this.add(ctrlPanel, BorderLayout.SOUTH);
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.pack();
+		
 	}
 
 	public int showRun() {
@@ -139,12 +146,14 @@ public class SpimDirChooser extends JDialog {
 		selectedDir = file.getAbsolutePath();
 		timeT1 = ((Integer) fieldT1.getValue()).intValue();
 		timeT2 = ((Integer) fieldT2.getValue()).intValue();
-
+		
 		if (checkBox.isSelected())
 			setValue(SpimDirChooser.SELECT_OPEN_INTERVAL);
 		else
 			setValue(SpimDirChooser.SELECT_OPEN_SIMPLE);
 
+		CB_virtual_state = CB_virtual.isSelected();
+		
 		dispose();
 		return JFileChooser.APPROVE_OPTION;
 	}
@@ -169,4 +178,7 @@ public class SpimDirChooser extends JDialog {
 		this.returnValue = returnValue;
 	}
 
+	public boolean get_CB_virtual_value(){
+		return CB_virtual_state;
+	}
 }

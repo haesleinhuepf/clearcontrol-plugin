@@ -33,6 +33,7 @@ import ij.plugin.PlugIn;
 import ij.io.*;
 import java.util.Arrays;
 
+import ij.plugin.FileInfoVirtualStack;
 
 import spimdirchooser.SpimDirChooser;
 
@@ -45,7 +46,8 @@ public class Read_Spim implements PlugIn {
 	private static SpimInfo spimInfo;
 	private int openMode;
 	private int timeT1, timeT2;
-
+	private static boolean virtual;
+		
 
 	public void getRootDir() {
 		// Open a directory chooser dialog and gets the root path and time intervals to be imported
@@ -59,6 +61,8 @@ public class Read_Spim implements PlugIn {
 		timeT1 = chooser.getT1();
 		timeT2 = chooser.getT2();
 		dirRootName = chooser.getSelectedDir();
+		
+		virtual = chooser.get_CB_virtual_value();
 	}
 
 	static public ImagePlus loadSpimFile(String fName, int[] stackDim,
@@ -67,7 +71,8 @@ public class Read_Spim implements PlugIn {
 
 
 		FileInfo fi = new FileInfo();
-
+		
+		
 		fi.width = stackDim[0];
 		fi.height = stackDim[1];
 		fi.fileFormat = FileInfo.RAW;
@@ -78,7 +83,17 @@ public class Read_Spim implements PlugIn {
 		fi.nImages = stackDim[2] * stackDim[3];
 		fi.longOffset = skip * stackDim[0] * stackDim[1] * stackDim[2] * 2;
 		
-		ImagePlus img = new FileOpener(fi).open(false);
+		
+		ImagePlus img;
+		if(virtual){
+			FileInfoVirtualStack vs = new FileInfoVirtualStack(fi,false);
+			img = new ImagePlus("virtual stack test", vs);	
+		}
+		else
+		{
+			FileOpener fo = new FileOpener(fi);
+			img = fo.open(false);
+		}
 
 		return img;
 	}
@@ -124,7 +139,7 @@ public class Read_Spim implements PlugIn {
 			// load the image plus 
 			ImagePlus img = loadSpimFile(spimInfo.dataFileName, stackDim, skip);
 
-			// create a hyperstack from the image and set the properties
+			// create a hyperStack from the image and set the properties
 			img.setDimensions(N_CHANNEL, stackDim[2], stackDim[3]);
 
 			// calibration
@@ -166,3 +181,4 @@ public class Read_Spim implements PlugIn {
 		// app.quit();
 	}
 }
+
